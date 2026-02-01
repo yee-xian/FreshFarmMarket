@@ -1,0 +1,164 @@
+@page
+@model WebApplication1.Pages.LoginModel
+@inject Microsoft.Extensions.Options.IOptions<WebApplication1.Settings.RecaptchaSettings> RecaptchaSettings
+@{
+    ViewData["Title"] = "Login - Fresh Farm Market";
+    var settings = RecaptchaSettings.Value;
+  var recaptchaEnabled = settings.IsConfigured() && settings.Enabled;
+    var siteKey = settings.SiteKey;
+    var sessionExpired = HttpContext.Request.Query["sessionExpired"].ToString() == "true";
+    var concurrentSession = HttpContext.Request.Query["concurrent"].ToString() == "1";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+  <div class="col-md-6 col-lg-4">
+    <div class="card shadow">
+          <div class="card-header bg-success text-white">
+       <h3 class="mb-0"><i class="bi bi-box-arrow-in-right"></i> Login</h3>
+          </div>
+       <div class="card-body">
+  
+   @* ? SESSION EXPIRED MESSAGE - Only shows when session actually timed out *@
+          @if (sessionExpired)
+       {
+     <div class="alert alert-warning" role="alert">
+          <i class="bi bi-clock-history"></i> <strong>Session Expired</strong>
+       <br />Your session has timed out due to inactivity. Please log in again to continue.
+        </div>
+      }
+   
+       @* ? CONCURRENT SESSION MESSAGE - Shows when logged in from another device *@
+         @if (concurrentSession)
+            {
+    <div class="alert alert-info" role="alert">
+             <i class="bi bi-pc-display-horizontal"></i> <strong>Logged Out</strong>
+        <br />You have been logged out because your account was accessed from another device or browser.
+           </div>
+}
+    
+            <form id="loginForm" method="post">
+   <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+   
+  <!-- Hidden reCAPTCHA token field -->
+    <input type="hidden" id="RecaptchaToken" name="LModel.RecaptchaToken" />
+
+ <!-- Email Field -->
+        <div class="mb-3">
+          <label class="form-label" asp-for="LModel.Email"></label>
+         <input type="email" asp-for="LModel.Email" class="form-control" placeholder="Enter your email" autofocus required />
+        <span asp-validation-for="LModel.Email" class="text-danger"></span>
+          </div>
+
+          <!-- Password Field -->
+     <div class="mb-3">
+         <label class="form-label" asp-for="LModel.Password"></label>
+        <div class="input-group">
+     <input type="password" id="password" asp-for="LModel.Password" class="form-control" placeholder="Enter your password" required />
+  <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()">
+  <i class="bi bi-eye" id="password-icon"></i>
+     </button>
+         </div>
+      <span asp-validation-for="LModel.Password" class="text-danger"></span>
+    </div>
+
+   <!-- Remember Me Checkbox -->
+ <div class="mb-3 form-check">
+    <input type="checkbox" asp-for="LModel.RememberMe" class="form-check-input" />
+    <label class="form-check-label" asp-for="LModel.RememberMe">Remember me</label>
+            </div>
+
+   <!-- Submit Button -->
+          <div class="d-grid gap-2">
+<button type="submit" id="loginBtn" class="btn btn-success btn-lg">
+ <i class="bi bi-box-arrow-in-right"></i> Login
+      </button>
+      </div>
+
+   <!-- Forgot Password Link -->
+       <div class="mt-3 text-center">
+   <a asp-page="/ForgotPassword" class="text-decoration-none">Forgot your password?</a>
+   </div>
+
+      <hr />
+
+             <!-- Register Link -->
+      <div class="text-center">
+   <small>Don't have an account? <a asp-page="/Register">Register here</a></small>
+           </div>
+  </form>
+           </div>
+         </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    @if (recaptchaEnabled)
+  {
+        <script src="https://www.google.com/recaptcha/api.js?render=@siteKey"></script>
+    }
+  
+    <script>
+  const recaptchaEnabled = @(recaptchaEnabled ? "true" : "false");
+  const siteKey = '@siteKey';
+        let formSubmitting = false;
+
+        function togglePassword() {
+      const field = document.getElementById('password');
+     const icon = document.getElementById('password-icon');
+       if (field.type === 'password') {
+    field.type = 'text';
+       icon.classList.remove('bi-eye');
+ icon.classList.add('bi-eye-slash');
+            } else {
+       field.type = 'password';
+       icon.classList.remove('bi-eye-slash');
+      icon.classList.add('bi-eye');
+            }
+   }
+
+    document.getElementById('loginForm').addEventListener('submit', function (e) {
+   if (formSubmitting) {
+        e.preventDefault();
+ return;
+  }
+
+     if (!recaptchaEnabled) {
+    formSubmitting = true;
+     return;
+        }
+
+    if (document.getElementById('RecaptchaToken').value) {
+    formSubmitting = true;
+     return;
+         }
+
+            e.preventDefault();
+
+  if (typeof grecaptcha === 'undefined') {
+      console.error('reCAPTCHA not loaded');
+        formSubmitting = true;
+      document.getElementById('loginForm').submit();
+return;
+    }
+
+      grecaptcha.ready(function () {
+  grecaptcha.execute(siteKey, { action: 'login' })
+ .then(function (token) {
+  console.log('reCAPTCHA token received');
+     document.getElementById('RecaptchaToken').value = token;
+      formSubmitting = true;
+      document.getElementById('loginForm').submit();
+          })
+       .catch(function (error) {
+     console.error('reCAPTCHA error:', error);
+          alert('Security verification failed. Please try again.');
+   formSubmitting = false;
+   });
+        });
+        });
+    </script>
+}

@@ -1,0 +1,47 @@
+@page
+@model WebApplication1.Pages.AdminTestModel
+@{
+    ViewData["Title"] = "Admin Test Page";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+             <div class="card-header bg-primary text-white">
+      <h4 class="mb-0"><i class="bi bi-shield-check"></i> Admin Test Page</h4>
+      </div>
+                <div class="card-body">
+           <h5>Welcome to the Admin Area</h5>
+          <p class="text-muted">
+      If you're seeing this page, it means you have the Admin role. 
+        This page is protected with <code>[Authorize(Roles = "Admin")]</code>.
+   </p>
+           
+           <div class="alert alert-info">
+   <strong>For Testing 403 Errors:</strong>
+ <ul class="mb-0 mt-2">
+        <li>Login as a regular user (not admin)</li>
+                <li>Navigate to this page</li>
+        <li>You should see the 403 error page instead</li>
+          <li>Check /AuditLogs for the "Access Denied" entry</li>
+         </ul>
+</div>
+
+         <hr />
+
+             <div class="d-flex gap-2">
+  <a asp-page="/Index" class="btn btn-outline-primary">
+       <i class="bi bi-house"></i> Go Home
+       </a>
+          <form method="post" asp-page="/Logout" style="display: inline;">
+            <button type="submit" class="btn btn-outline-danger">
+     <i class="bi bi-box-arrow-right"></i> Logout
+          </button>
+   </form>
+       </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

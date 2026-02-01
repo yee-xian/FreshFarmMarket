@@ -1,0 +1,57 @@
+@page "{statusCode?}"
+@model WebApplication1.Pages.ErrorPageModel
+@{
+    ViewData["Title"] = Model.ErrorTitle;
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+     <div class="card shadow @Model.BorderClass">
+      <div class="card-body py-5">
+    <i class="bi @Model.IconClass @Model.TextColorClass" style="font-size: 5rem;"></i>
+    <h1 class="display-4 mt-3">@Model.StatusCode</h1>
+  <h2 class="@Model.TextColorClass">@Model.ErrorTitle</h2>
+        <p class="text-muted mt-3">@Model.ErrorMessage</p>
+      
+        @if (Model.ShowDetails && !string.IsNullOrEmpty(Model.RequestId))
+  {
+       <p class="text-muted small">
+    <strong>Request ID:</strong> @Model.RequestId
+ </p>
+ }
+
+       <hr />
+      <div class="d-flex justify-content-center gap-3 flex-wrap">
+    @if (Model.StatusCode == 401 || Model.StatusCode == 403)
+ {
+  <a asp-page="/Login" class="btn btn-primary">
+      <i class="bi bi-box-arrow-in-right"></i> Login
+  </a>
+    }
+       <a asp-page="/Index" class="btn btn-outline-primary">
+      <i class="bi bi-house"></i> Go Home
+   </a>
+    <button onclick="history.back()" class="btn btn-outline-secondary">
+   <i class="bi bi-arrow-left"></i> Go Back
+   </button>
+    </div>
+     </div>
+   </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .error-code {
+    font-size: 8rem;
+  font-weight: bold;
+   opacity: 0.1;
+        position: absolute;
+        top: 50%;
+ left: 50%;
+   transform: translate(-50%, -50%);
+        z-index: -1;
+    }
+</style>

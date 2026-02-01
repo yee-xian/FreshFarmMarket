@@ -1,0 +1,87 @@
+@page
+@model WebApplication1.Pages.AuditLogsModel
+@{
+ ViewData["Title"] = "Activity Logs - Fresh Farm Market";
+}
+
+<div class="container mt-4">
+  <div class="row justify-content-center">
+        <div class="col-md-12">
+  <div class="card shadow">
+  <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+ <h4 class="mb-0"><i class="bi bi-journal-text"></i> Activity Logs</h4>
+         <a asp-page="/Index" class="btn btn-light btn-sm">
+  <i class="bi bi-arrow-left"></i> Back to Profile
+        </a>
+         </div>
+      <div class="card-body">
+        @if (Model.AuditLogs != null && Model.AuditLogs.Any())
+    {
+  <div class="table-responsive">
+  <table class="table table-striped table-hover">
+   <thead class="table-dark">
+        <tr>
+     <th>Date & Time</th>
+   <th>Action</th>
+  <th>Details</th>
+    <th>reCAPTCHA Score</th>
+      <th>IP Address</th>
+   </tr>
+       </thead>
+  <tbody>
+       @foreach (var log in Model.AuditLogs)
+{
+      <tr>
+       <td>
+     <small>@log.Timestamp.ToString("dd MMM yyyy")</small><br />
+              <small class="text-muted">@log.Timestamp.ToString("HH:mm:ss")</small>
+     </td>
+    <td>
+    @{
+         var badgeClass = log.Action switch
+           {
+    "Login Success" or "Login" => "bg-success",
+     "Logout" => "bg-secondary",
+     "Registration Success" => "bg-primary",
+ "Password Changed" or "Password Reset" => "bg-warning text-dark",
+   "2FA Enabled" or "2FA Disabled" => "bg-info",
+         var a when a.Contains("Failed") || a.Contains("Locked") => "bg-danger",
+           _ => "bg-secondary"
+       };
+      }
+ <span class="badge @badgeClass">@log.Action</span>
+      </td>
+      <td><small>@(log.Details ?? "-")</small></td>
+        <td>
+ @if (log.RecaptchaScore.HasValue)
+  {
+    var scoreValue = log.RecaptchaScore.Value;
+    var scoreColor = scoreValue >= 0.9 ? "success" :
+   scoreValue >= 0.7 ? "info" :
+              scoreValue >= 0.5 ? "warning" : "danger";
+    <span class="badge bg-@scoreColor">@scoreValue.ToString("F2")</span>
+  }
+  else
+  {
+    <span class="text-muted small">-</span>
+  }
+ </td>
+     <td><small class="text-muted">@(log.IpAddress ?? "Unknown")</small></td>
+    </tr>
+     }
+  </tbody>
+    </table>
+             </div>
+ }
+        else
+             {
+    <div class="text-center py-5">
+               <i class="bi bi-journal-x text-muted" style="font-size: 3rem;"></i>
+         <p class="mt-3 text-muted">No activity logs found.</p>
+  </div>
+ }
+         </div>
+       </div>
+        </div>
+    </div>
+</div>

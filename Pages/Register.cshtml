@@ -1,0 +1,305 @@
+﻿@page
+@model WebApplication1.Pages.RegisterModel
+@inject Microsoft.Extensions.Options.IOptions<WebApplication1.Settings.RecaptchaSettings> RecaptchaSettings
+@{
+    ViewData["Title"] = "Register - Fresh Farm Market";
+    var settings = RecaptchaSettings.Value;
+    var recaptchaEnabled = settings.IsConfigured() && settings.Enabled;
+    var siteKey = settings.SiteKey;
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+      <div class="card-header bg-success text-white">
+       <h3 class="mb-0"><i class="bi bi-person-plus"></i> Register for Fresh Farm Market</h3>
+   </div>
+   <div class="card-body">
+      <form id="registerForm" method="post" enctype="multipart/form-data">
+   
+  @* Validation Summary - The Red Bar *@
+        @if (!ViewData.ModelState.IsValid)
+     {
+        <div class="alert alert-danger" role="alert">
+     <strong><i class="bi bi-exclamation-triangle"></i> Registration Error:</strong>
+ <ul class="mb-0 mt-2">
+          @foreach (var modelState in ViewData.ModelState.Values)
+                 {
+       @foreach (var error in modelState.Errors)
+          {
+            <li>@error.ErrorMessage</li>
+    }
+ }
+           </ul>
+         </div>
+       }
+      
+         @* Hidden reCAPTCHA token field *@
+   <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response" />
+
+        @* Full Name *@
+   <div class="mb-3">
+       <label class="form-label" asp-for="RModel.FullName"></label>
+       <input type="text" asp-for="RModel.FullName" class="form-control" placeholder="Enter your full name" />
+         <span asp-validation-for="RModel.FullName" class="text-danger"></span>
+         </div>
+
+                @* Gender *@
+       <div class="mb-3">
+         <label class="form-label" asp-for="RModel.Gender"></label>
+            <select asp-for="RModel.Gender" class="form-select">
+<option value="">Select Gender</option>
+         <option value="Male">Male</option>
+  <option value="Female">Female</option>
+   <option value="Other">Other</option>
+     </select>
+         <span asp-validation-for="RModel.Gender" class="text-danger"></span>
+       </div>
+
+      @* Mobile Number *@
+      <div class="mb-3">
+ <label class="form-label" asp-for="RModel.MobileNo"></label>
+      <input type="tel" asp-for="RModel.MobileNo" class="form-control" placeholder="e.g., 91234567" maxlength="8" />
+      <span asp-validation-for="RModel.MobileNo" class="text-danger"></span>
+                 <small class="form-text text-muted">Singapore mobile number (8 digits starting with 8 or 9)</small>
+       </div>
+
+                 @* Delivery Address *@
+   <div class="mb-3">
+ <label class="form-label" asp-for="RModel.DeliveryAddress"></label>
+      <textarea asp-for="RModel.DeliveryAddress" class="form-control" rows="3" placeholder="Enter your delivery address"></textarea>
+             <span asp-validation-for="RModel.DeliveryAddress" class="text-danger"></span>
+   </div>
+
+ @* Email *@
+              <div class="mb-3">
+  <label class="form-label" asp-for="RModel.Email"></label>
+       <input type="email" asp-for="RModel.Email" class="form-control" placeholder="example@@email.com" />
+      <span asp-validation-for="RModel.Email" class="text-danger"></span>
+    </div>
+
+      @* Password *@
+    <div class="mb-3">
+    <label class="form-label" asp-for="RModel.Password"></label>
+      <div class="input-group">
+   <input type="password" id="password" asp-for="RModel.Password" class="form-control" />
+          <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password')">
+    <i class="bi bi-eye" id="password-icon"></i>
+    </button>
+    </div>
+     <span asp-validation-for="RModel.Password" class="text-danger"></span>
+         <div id="passwordStrength" class="mt-2"></div>
+     <small class="form-text text-muted">Minimum 12 characters with uppercase, lowercase, numbers, and special characters</small>
+     </div>
+
+     @* Confirm Password *@
+              <div class="mb-3">
+      <label class="form-label" asp-for="RModel.ConfirmPassword"></label>
+   <div class="input-group">
+             <input type="password" id="confirmPassword" asp-for="RModel.ConfirmPassword" class="form-control" />
+           <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirmPassword')">
+       <i class="bi bi-eye" id="confirmPassword-icon"></i>
+         </button>
+     </div>
+  <span asp-validation-for="RModel.ConfirmPassword" class="text-danger"></span>
+           </div>
+
+  @* Credit Card Number *@
+                 <div class="mb-3">
+            <label class="form-label" asp-for="RModel.CreditCardNo"></label>
+   <input type="text" asp-for="RModel.CreditCardNo" class="form-control" placeholder="1234567890123456" maxlength="16" />
+             <span asp-validation-for="RModel.CreditCardNo" class="text-danger"></span>
+     <small class="form-text text-muted">Enter 16-digit credit card number (will be encrypted)</small>
+      </div>
+
+        @* About Me *@
+     <div class="mb-3">
+       <label class="form-label" asp-for="RModel.AboutMe"></label>
+      <textarea asp-for="RModel.AboutMe" class="form-control" rows="4" placeholder="Tell us about yourself..."></textarea>
+     <span asp-validation-for="RModel.AboutMe" class="text-danger"></span>
+         <small class="form-text text-muted">All special characters are allowed</small>
+  </div>
+
+              @* Photo Upload *@
+   <div class="mb-3">
+     <label class="form-label" asp-for="RModel.Photo"></label>
+     <input type="file" name="RModel.Photo" id="photoInput" class="form-control" accept=".jpg" onchange="previewPhoto(this)" />
+       <span asp-validation-for="RModel.Photo" class="text-danger"></span>
+    <small class="form-text text-muted">Only .JPG files are allowed (max 2MB)</small>
+   <div id="photoPreview" class="mt-2"></div>
+           </div>
+
+     @* reCAPTCHA v3 badge info *@
+           @if (recaptchaEnabled)
+              {
+     <div class="mb-3">
+            <small class="text-muted">
+     <i class="bi bi-shield-check"></i> This site is protected by reCAPTCHA
+     </small>
+                  </div>
+         }
+
+             @* Submit Button *@
+       <div class="d-grid gap-2">
+   <button type="submit" id="submitBtn" class="btn btn-success btn-lg">
+          <i class="bi bi-person-check"></i> Register
+     </button>
+       </div>
+
+         @* Login Link *@
+      <div class="mt-3 text-center">
+    <small>Already have an account? <a asp-page="/Login">Login here</a></small>
+     </div>
+            </form>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    @if (recaptchaEnabled)
+    {
+        <script src="https://www.google.com/recaptcha/api.js?render=@siteKey"></script>
+  }
+
+    <script>
+        const recaptchaEnabled = @(recaptchaEnabled ? "true" : "false");
+        const siteKey = '@siteKey';
+
+  function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+         const icon = document.getElementById(fieldId + '-icon');
+        if (field.type === 'password') {
+         field.type = 'text';
+                icon.classList.remove('bi-eye');
+      icon.classList.add('bi-eye-slash');
+    } else {
+          field.type = 'password';
+   icon.classList.remove('bi-eye-slash');
+    icon.classList.add('bi-eye');
+     }
+        }
+
+        document.getElementById('password').addEventListener('input', function () {
+     const password = this.value;
+     const strengthDiv = document.getElementById('passwordStrength');
+         let strength = 0;
+  let feedback = [];
+
+ if (password.length >= 12) strength++;
+     else feedback.push('At least 12 characters');
+
+      if (/[A-Z]/.test(password)) strength++;
+   else feedback.push('Uppercase letter');
+
+      if (/[a-z]/.test(password)) strength++;
+         else feedback.push('Lowercase letter');
+
+      if (/\d/.test(password)) strength++;
+    else feedback.push('Number');
+
+  if (/[!#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`@@]/.test(password)) strength++;
+else feedback.push('Special character');
+
+            let color = 'danger';
+      let text = 'Weak';
+            if (strength >= 4) { color = 'warning'; text = 'Medium'; }
+     if (strength === 5) { color = 'success'; text = 'Strong'; }
+
+    if (password.length > 0) {
+   strengthDiv.innerHTML = '<div class="progress" style="height: 5px;"><div class="progress-bar bg-' + color + '" style="width: ' + (strength * 20) + '%"></div></div><small class="text-' + color + '">' + text + '</small>' + (feedback.length > 0 ? '<br><small class="text-muted">Missing: ' + feedback.join(', ') + '</small>' : '');
+            } else {
+                strengthDiv.innerHTML = '';
+   }
+        });
+
+        function previewPhoto(input) {
+  const preview = document.getElementById('photoPreview');
+            if (input.files && input.files[0]) {
+   const file = input.files[0];
+
+         if (!file.name.toLowerCase().endsWith('.jpg')) {
+    preview.innerHTML = '<div class="alert alert-danger py-1">Only .JPG files are allowed!</div>';
+   input.value = '';
+          return;
+            }
+
+     if (file.size > 2 * 1024 * 1024) {
+    preview.innerHTML = '<div class="alert alert-danger py-1">File size must be less than 2MB!</div>';
+    input.value = '';
+    return;
+   }
+
+            const reader = new FileReader();
+       reader.onload = function (e) {
+   preview.innerHTML = '<img src="' + e.target.result + '" class="img-thumbnail" style="max-height: 150px;" alt="Photo preview">';
+     };
+      reader.readAsDataURL(file);
+ } else {
+                preview.innerHTML = '';
+ }
+ }
+
+        document.querySelector('[name="RModel.CreditCardNo"]').addEventListener('input', function (e) {
+   this.value = this.value.replace(/\D/g, '').substring(0, 16);
+        });
+
+      document.querySelector('[name="RModel.MobileNo"]').addEventListener('input', function (e) {
+            this.value = this.value.replace(/\D/g, '').substring(0, 8);
+});
+
+        // Form submission with reCAPTCHA
+    document.getElementById('registerForm').addEventListener('submit', function (e) {
+            console.log('Form submit triggered');
+
+            if (!recaptchaEnabled) {
+    console.log('reCAPTCHA not enabled - submitting directly');
+        return true;
+        }
+
+  const existingToken = document.getElementById('g-recaptcha-response').value;
+        if (existingToken && existingToken.length > 20) {
+     console.log('Token exists, submitting');
+                return true;
+   }
+
+            e.preventDefault();
+       console.log('Getting reCAPTCHA token...');
+
+ const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Verifying...';
+
+          if (typeof grecaptcha === 'undefined') {
+     console.error('grecaptcha not loaded');
+    alert('Security verification failed. Please refresh the page.');
+     submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="bi bi-person-check"></i> Register';
+           return false;
+     }
+
+            grecaptcha.ready(function () {
+         grecaptcha.execute(siteKey, { action: 'register' })
+  .then(function (token) {
+   console.log('Token received');
+   document.getElementById('g-recaptcha-response').value = token;
+            document.getElementById('registerForm').submit();
+           })
+        .catch(function (error) {
+              console.error('reCAPTCHA error:', error);
+          alert('Security verification failed. Please try again.');
+             submitBtn.disabled = false;
+     submitBtn.innerHTML = '<i class="bi bi-person-check"></i> Register';
+    });
+            });
+
+        return false;
+        });
+
+        console.log('Registration page loaded, reCAPTCHA enabled:', recaptchaEnabled);
+    </script>
+}

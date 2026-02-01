@@ -1,0 +1,128 @@
+@page
+@model WebApplication1.Pages.Setup2faModel
+@{
+    ViewData["Title"] = "Two-Factor Authentication Setup";
+}
+
+<div class="container mt-5">
+<div class="row justify-content-center">
+      <div class="col-md-8">
+       <div class="card shadow">
+     <div class="card-header bg-warning">
+     <h3 class="mb-0"><i class="bi bi-shield-lock"></i> Two-Factor Authentication</h3>
+ </div>
+       <div class="card-body">
+    @if (!string.IsNullOrEmpty(Model.StatusMessage))
+   {
+         <div class="alert alert-success" role="alert">
+       @Model.StatusMessage
+    </div>
+         }
+
+  @if (Model.RecoveryCodes != null && Model.RecoveryCodes.Length > 0)
+       {
+     <div class="alert alert-warning">
+     <h5><i class="bi bi-exclamation-triangle"></i> Save Your Recovery Codes</h5>
+      <p>If you lose access to your authenticator app, you can use these codes to sign in. Each code can only be used once.</p>
+    <div class="bg-light p-3 rounded">
+     <code>
+    @foreach (var code in Model.RecoveryCodes)
+    {
+       <span class="me-3">@code</span>
+  }
+     </code>
+     </div>
+       <p class="mt-2 mb-0"><strong>Store these codes in a safe place!</strong></p>
+     </div>
+     }
+
+   @if (Model.Is2faEnabled)
+    {
+       <div class="alert alert-success">
+    <h5><i class="bi bi-check-circle"></i> 2FA is Enabled</h5>
+     <p>Your account is protected with two-factor authentication.</p>
+  </div>
+
+            <form method="post" asp-page-handler="Disable">
+        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to disable 2FA? This will make your account less secure.')">
+        <i class="bi bi-shield-x"></i> Disable 2FA
+           </button>
+   </form>
+      }
+     else
+{
+  <div class="alert alert-info">
+  <h5><i class="bi bi-info-circle"></i> Set Up 2FA</h5>
+       <p>Enhance your account security by enabling two-factor authentication.</p>
+   </div>
+
+     <h5>Step 1: Install an Authenticator App</h5>
+       <p>Download and install an authenticator app on your mobile device:</p>
+         <ul>
+         <li>Google Authenticator (<a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" target="_blank">Android</a> | <a href="https://apps.apple.com/app/google-authenticator/id388497605" target="_blank">iOS</a>)</li>
+  <li>Microsoft Authenticator (<a href="https://play.google.com/store/apps/details?id=com.azure.authenticator" target="_blank">Android</a> | <a href="https://apps.apple.com/app/microsoft-authenticator/id983156458" target="_blank">iOS</a>)</li>
+ <li>Authy (<a href="https://authy.com/download/" target="_blank">All platforms</a>)</li>
+           </ul>
+
+         <h5>Step 2: Scan the QR Code</h5>
+    <p>Open your authenticator app and scan this QR code:</p>
+
+    <div class="text-center mb-3">
+    @if (!string.IsNullOrEmpty(Model.QrCodeImageBase64))
+   {
+    <div class="d-inline-block p-3 bg-white border rounded">
+<img src="data:image/png;base64,@Model.QrCodeImageBase64" alt="QR Code for 2FA" style="width: 200px; height: 200px;" />
+        </div>
+   }
+  else
+{
+       <div class="alert alert-danger">
+     <i class="bi bi-exclamation-circle"></i> Unable to generate QR code. Please refresh the page.
+    </div>
+        }
+           </div>
+
+     <p class="text-center">Or manually enter this key: <code>@Model.SharedKey</code></p>
+
+   <h5>Step 3: Verify Setup</h5>
+       <p>Enter the 6-digit code from your authenticator app to verify:</p>
+
+            <form method="post" asp-page-handler="Enable">
+       <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+       <div class="mb-3">
+ <label class="form-label" for="Code">Verification Code</label>
+       <input type="text" name="Code" id="Code" class="form-control" style="max-width: 200px;" 
+       autocomplete="off" placeholder="000000" maxlength="6" pattern="[0-9]{6}" 
+       inputmode="numeric" autofocus />
+   <span asp-validation-for="Code" class="text-danger"></span>
+       <small class="form-text text-muted">Enter the 6-digit code shown in your authenticator app</small>
+           </div>
+
+         <button type="submit" class="btn btn-success">
+        <i class="bi bi-check-circle"></i> Enable 2FA
+       </button>
+   </form>
+    }
+
+       <hr class="my-4" />
+
+   <a asp-page="/Index" class="btn btn-outline-secondary">
+       <i class="bi bi-arrow-left"></i> Back to Profile
+        </a>
+        </div>
+ </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        // Auto-format the verification code input (digits only)
+   document.getElementById('Code')?.addEventListener('input', function(e) {
+     this.value = this.value.replace(/\D/g, '').substring(0, 6);
+  });
+    </script>
+}

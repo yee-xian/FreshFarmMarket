@@ -1,0 +1,96 @@
+# ? GITHUB SECURITY: Ignore sensitive configuration files
+appsettings.Development.json
+appsettings.Production.json
+appsettings.*.json
+!appsettings.json
+
+# User-specific files
+*.user
+*.userosscache
+*.suo
+*.userprefs
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio files
+.vs/
+*.vssscc
+*.vspscc
+.builds
+*.pidb
+*.log
+*.svclog
+*.scc
+
+# NuGet packages
+packages/
+*.nupkg
+**/packages/*
+!**/packages/build/
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# Rider
+.idea/
+*.sln.iml
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# SQL Server files
+*.mdf
+*.ldf
+*.ndf
+
+# SQLite files
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+*.env
+
+# Secrets (never commit these!)
+secrets.json
+*.pfx
+*.key
+*.pem
+*.crt
+
+# User uploads (may contain sensitive data)
+wwwroot/uploads/
+
+# Temporary files
+*.tmp
+*.temp
